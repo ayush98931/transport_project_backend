@@ -161,3 +161,14 @@ def register_maual(request):
             'error':['otp'],
             'msg' : 'invalid OTP'
         }})
+        
+
+
+@api_view(['POST'])
+def logout(request):
+    data = request.data
+    token = Token.objects.get(key = data['token'])
+    token.delete()
+    return Response({'data':{
+        'msg': "Successfully Logged Out"
+    }})
