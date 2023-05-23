@@ -6,6 +6,5 @@ urlpatterns = [
     path('google_sign_in/' , sigin_with_google),
     path('manual_sign_in/' , sigin_in_manual),
     path('manual_register/' , register_maual),
-    path('send_otp/' , send_otp),
     path('logout/' , logout)
 ]

@@ -105,18 +105,10 @@ def sigin_in_manual(request):
                              'msg':"Unable to find user"} , status=status.HTTP_400_BAD_REQUEST)
         
 
-@api_view(['GET'])
-def send_otp(request):
-    otp = pyotp.TOTP(settings.SECRET_KEY)
-    print(otp)
-    return Response({'data':{
-        'otp': "123456"
-    }})
 
 @api_view(['POST'])
 def register_maual(request):
     data = request.data
-    otp = data['otp']
     user_data = data['user_data']
     
     if user_data['user_type'] not in [constants.user_types.client , constants.user_types.transporter]:
@@ -127,40 +119,34 @@ def register_maual(request):
         return Response({'error':['email' , 'name' , 'password'],
                              'msg' : "Required Fields"})
     
-    
-    if ( otp == "123456"):
-        try :
-            user = User.objects.get(email = user_data['email'])
-            return Response({'error':['email'],
-                             'msg' : "User Already Exists"})
-        except User.DoesNotExist:
-            try:
-                user =  User(
-                name = user_data['name'],
-                email = user_data['email'],
-                password = User.encode_password(user_data['password']),
-                user_type = user_data['user_type'],
-                google_login = False,
-                verified = True
-                )
-                user.save()
-                user.refresh_from_db()
-                
-                serialized = User_serializer(user)
+    try :
+        user = User.objects.get(email = user_data['email'])
+        return Response({'error':['email'],
+                            'msg' : "User Already Exists"} , status=status.HTTP_400_BAD_REQUEST)
+    except User.DoesNotExist:
+        try:
+            user =  User(
+            name = user_data['name'],
+            email = user_data['email'],
+            password = User.encode_password(user_data['password']),
+            user_type = user_data['user_type'],
+            google_login = False,
+            verified = True
+            )
+            user.save()
+            user.refresh_from_db()
             
-                return Response({
-                    'data' : {'user_data' : serialized.data},
-                    'msg':f"{user.name} Sucessfully added"
-                    },status=status.HTTP_200_OK)
-            
-            except:
-                return({'error':['user'] ,
-                        'msg': "Error Occured"})
-    else:
-        return Response({'data':{
-            'error':['otp'],
-            'msg' : 'invalid OTP'
-        }})
+            serialized = User_serializer(user)
+        
+            return Response({
+                'data' : {'user_data' : serialized.data},
+                'msg':f"{user.name} Sucessfully added"
+                },status=status.HTTP_200_OK)
+        
+        except:
+            return Response({'error':['user'] ,
+                    'msg': "Error Occured"} , status.HTTP_400_BAD_REQUEST)
+
         
 
 
